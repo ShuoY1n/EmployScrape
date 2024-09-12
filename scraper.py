@@ -1,4 +1,3 @@
-from os import major
 import httpx
 from bs4 import BeautifulSoup
 
@@ -8,6 +7,7 @@ headers = {
 }
 
 cardClass = 'sc-225578b-0 btdqbl'
+headlines = []
 
 def main():
     response = httpx.get(url, headers=headers, follow_redirects=True)
@@ -22,15 +22,20 @@ def main():
             headlineText = headline.find(attrs={'data-testid': 'card-headline'}).text
             headlineDescription = headline.find(attrs={'data-testid': 'card-description'}).text
             headlineElapsedTime = headline.find(attrs={'data-testid': 'card-metadata-lastupdated'}).text
-            headlineLocation = headline.find(attrs={'data-testid': 'card-metadata-tag'}).text
+            headlineCategory = headline.find(attrs={'data-testid': 'card-metadata-tag'}).text
             headlineLink = 'https://www.bbc.com' + headline.find(attrs={'data-testid': 'internal-link'}).get('href')
         except:
             continue
 
+        if headlineText not in headlines:
+            headlines.append(headlineText)
+        else:
+            continue
+        
         print(headlineText)
         print(headlineDescription)
         print(headlineElapsedTime)
-        print(headlineLocation)
+        print(headlineCategory)
         print(headlineLink)
         print('--------------------------------')
 

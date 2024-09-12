@@ -1,5 +1,12 @@
 import httpx
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+notion_key = os.getenv('NOTION_API_KEY')
+gemini_key = os.getenv('GEMINI_API_KEY')
 
 url = 'https://www.bbc.com/news'
 headers = {

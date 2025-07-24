@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import os
 from google import genai
 from google.genai import types
+from notion_client import Client
+import datetime
 
 load_dotenv()
 
@@ -12,6 +14,7 @@ notion_database_id = os.getenv('NOTION_DATABASE_ID')
 
 def main():
     client = genai.Client()
+    notion = Client(auth=notion_key)
     
     cardClass = 'sc-225578b-0 btdqbl'
     articleTextBlockClass = 'sc-9a00e533-0 hxuGS'
@@ -69,18 +72,43 @@ def main():
                 f"Summarize the following news article in no more than 4 sentences. Include all critical information such as who, what, when, where, why, and how, while preserving factual accuracy. Avoid unnecessary details or commentary. Write in a neutral tone. ARTICLE: {articleText}"
             )
         )
-        
-        print(headlineText + '\n--------------------------------')
-        print(response.text)
-        print('--------------------------------')
 
-
-        # print(headlineText)
-        # print(headlineBlurb)
-        # print(headlineElapsedTime)
-        # print(headlineCategory)
-        # print(headlineLink)
-        # print('--------------------------------')
+        try:
+            new_page = notion.pages.create(
+                parent={"database_id": notion_database_id},
+                properties={
+                    "Name": {
+                        "title": [
+                            {
+                                "type": "text",
+                                "text": {
+                                    "content": "News Summary for " + datetime.datetime.now().strftime("%Y-%m-%d")
+                                }
+                            }
+                        ]
+                    }
+                },
+                children=[
+                    {
+                        "object": "block",
+                        "type": "paragraph",
+                        "paragraph": {
+                            "rich_text": [
+                                {
+                                    "type": "text",
+                                    "text": {
+                                        "content": response.text
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            )
+            print(f"Page created successfully! ID: {new_page['id']}")
+            
+        except Exception as e:
+            print(f"Error creating page: {e}")
 
 
 

@@ -14,6 +14,7 @@ def main():
     client = genai.Client()
     
     cardClass = 'sc-225578b-0 btdqbl'
+    articleTextBlockClass = 'sc-9a00e533-0 hxuGS'
     headlines = []
 
     url = 'https://www.bbc.com/news'
@@ -32,7 +33,7 @@ def main():
 
     for headline in headlines:
         count += 1
-        if count > 5:
+        if count > 1:
             break
 
         try:
@@ -49,15 +50,23 @@ def main():
         else:
             continue
 
+        articlePage = httpx.get(headlineLink, headers=headers, follow_redirects=True)
+        articlePage.html = articlePage.text
+        articleSoup = BeautifulSoup(articlePage.html, 'html.parser')
+        articleTextBlocks = articleSoup.find_all('p', class_=articleTextBlockClass)
+        articleText = ''
+        for block in articleTextBlocks:
+            articleText += block.text
+
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             config=types.GenerateContentConfig(
                 system_instruction=(
-                    "You are a professional summarizer that condenses news into short, accurate briefs. Always include all key facts and avoid injecting opinions."
+                    "You are a professional summarizer that condenses news into short, accurate briefs. Always include all key facts and avoid injecting opinions. Avoid Using complex words and sentences. Use simple words and sentences."
                 )
             ),
             contents=(
-                f"Summarize the following news article in no more than 4 sentences. Include all critical information such as who, what, when, where, why, and how, while preserving factual accuracy. Avoid unnecessary details or commentary. Write in a neutral tone. ARTICLE: {headlineText}"
+                f"Summarize the following news article in no more than 4 sentences. Include all critical information such as who, what, when, where, why, and how, while preserving factual accuracy. Avoid unnecessary details or commentary. Write in a neutral tone. ARTICLE: {articleText}"
             )
         )
         

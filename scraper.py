@@ -71,7 +71,12 @@ def main():
 
     headlines = soup.find_all('div', class_=cardClass)
 
+    count = 0
     for headline in headlines:
+        count += 1
+        if count > 1:
+            break
+        
         try:
             headlineText = headline.find(attrs={'data-testid': 'card-headline'}).text
             headlineBlurb = headline.find(attrs={'data-testid': 'card-description'}).text
@@ -102,25 +107,44 @@ def main():
                 )
             ),
             contents=(
-                f"Summarize the following news article in no more than 4 sentences. Include all critical information such as who, what, when, where, why, and how, while preserving factual accuracy. Avoid unnecessary details or commentary. Write in a neutral tone. ARTICLE: {articleText}"
+                f"Summarize the following news article in no more than 4 sentences. Include all critical information such as who, what, when, where, why, and how, while preserving factual accuracy. Avoid unnecessary details or commentary. Write in a neutral tone. The first sentence should be a summary of the article. ARTICLE: {articleText}"
             )
         )
 
         article_dt = get_article_datetime(headlineElapsedTime)
         date_str = article_dt.strftime("%Y-%m-%d")
         time_str = article_dt.strftime("%H:%M")
-        block_content = (
-            f"{date_str} {time_str}\n"
-            f"Title: {headlineText}\n"
-            f"Category: {headlineCategory}\n"
-            f"Link: {headlineLink}\n"
-            f"Summary: {response.text}"
-        )
 
         try:
             notion.blocks.children.append(
                 block_id=summary_page_id,
                 children=[
+                    {
+                        "object": "block",
+                        "type": "bulleted_list_item",
+                        "bulleted_list_item": {
+                            "rich_text": [
+                                {
+                                    "type": "text",
+                                    "text": {
+                                        "content": headlineText,
+                                        "link": {"url": headlineLink}
+                                    },
+                                    "annotations": {"bold": True}
+                                },
+                                {
+                                    "type": "text",
+                                    "text": {"content": f"  [{headlineCategory}]"},
+                                    "annotations": {"italic": True}
+                                },
+                                {
+                                    "type": "text",
+                                    "text": {"content": f"  {date_str} {time_str}"},
+                                    "annotations": {"code": True}
+                                }
+                            ]
+                        }
+                    },
                     {
                         "object": "block",
                         "type": "paragraph",
@@ -129,7 +153,7 @@ def main():
                                 {
                                     "type": "text",
                                     "text": {
-                                        "content": block_content
+                                        "content": f"{response.text}"
                                     }
                                 }
                             ]

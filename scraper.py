@@ -74,7 +74,7 @@ def main():
     count = 0
     for headline in headlines:
         count += 1
-        if count > 1:
+        if count > 5:
             break
         
         try:
@@ -164,6 +164,8 @@ def main():
             print(f"Added article: {headlineText}")
         except Exception as e:
             print(f"Error appending article: {e}")
+
+    print(f"Done!\nTotal articles added: {len(parsedArticles)}")
 
 if __name__ == '__main__':
     main()

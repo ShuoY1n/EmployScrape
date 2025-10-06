@@ -1,4 +1,4 @@
-# EmployScrape
+# AutoNews
 
 A web scraping project that extracts news articles from BBC News, summarizes them using Google's Gemini AI, and stores the results in Notion.
 
